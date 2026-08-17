@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which Miracle? — Glitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Lora:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EFE8DA;
+  --paper-2:#E6DCC9;
+  --ink:#241E1B;
+  --ink-soft:#5C5147;
+  --rule:#C9BCA5;
+  --oxblood:#6E1E22;
+
+  --eide:#9A7420;
+  --flore:#2F5D4B;
+  --lore:#4A3A73;
+  --wyrd:#8C2F1B;
+  --ability:#5A5148;
+
+  --display:"Cormorant Garamond",Georgia,serif;
+  --body:"Lora",Georgia,serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px;margin:0 auto;padding:28px 20px 96px}
+
+/* ---------- masthead ---------- */
+.masthead{border-bottom:1px solid var(--rule);padding-bottom:18px;margin-bottom:22px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-soft);margin:0 0 6px
+}
+h1{
+  font-family:var(--display);font-weight:600;font-size:clamp(38px,9vw,58px);
+  line-height:.95;margin:0;letter-spacing:-.01em
+}
+h1 em{font-style:italic;color:var(--oxblood)}
+.deck{font-size:15px;color:var(--ink-soft);margin:10px 0 0;max-width:46ch}
+
+/* ---------- sheet strip ---------- */
+.sheet{
+  margin:20px 0 0;border:1px solid var(--rule);background:var(--paper-2);
+}
+.sheet-head{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:none;border:0;padding:11px 14px;cursor:pointer;text-align:left;
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+}
+.sheet-head:hover{color:var(--ink)}
+.sheet-head .chev{transition:transform .2s ease}
+.sheet[data-open="true"] .chev{transform:rotate(180deg)}
+.sheet-body{display:none;padding:4px 14px 16px;border-top:1px solid var(--rule)}
+.sheet[data-open="true"] .sheet-body{display:block}
+.levels{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.lvl{display:flex;flex-direction:column;gap:5px}
+.lvl label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.lvl input{
+  font-family:var(--mono);font-size:17px;text-align:center;width:100%;padding:7px 2px;
+  border:1px solid var(--rule);border-top-width:3px;background:var(--paper);color:var(--ink);
+}
+.lvl input:focus-visible{outline:2px solid var(--oxblood);outline-offset:1px}
+.lvl[data-a="eide"] input{border-top-color:var(--eide)}
+.lvl[data-a="flore"] input{border-top-color:var(--flore)}
+.lvl[data-a="lore"] input{border-top-color:var(--lore)}
+.lvl[data-a="wyrd"] input{border-top-color:var(--wyrd)}
+.lvl[data-a="ability"] input{border-top-color:var(--ability)}
+.sheet-note{font-size:13px;color:var(--ink-soft);margin:12px 0 0}
+
+/* ---------- nav ---------- */
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:26px 0 14px;min-height:22px}
+.crumb{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:0;padding:0;cursor:pointer;color:var(--oxblood);text-decoration:underline;
+  text-underline-offset:3px;text-decoration-thickness:1px
+}
+.crumb:hover{color:var(--ink)}
+.crumb-sep{font-family:var(--mono);font-size:11px;color:var(--rule)}
+.crumb-now{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+
+/* ---------- panels ---------- */
+.panel{display:none}
+.panel.on{display:block;animation:rise .28s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.ask{font-family:var(--display);font-size:clamp(25px,5.5vw,33px);line-height:1.15;margin:0 0 18px;font-weight:400}
+
+/* ---------- intent grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.card{
+  position:relative;text-align:left;cursor:pointer;
+  background:var(--paper-2);border:1px solid var(--rule);border-left:0;
+  padding:15px 15px 14px 18px;font-family:var(--body);color:var(--ink);
+  transition:background .15s ease,transform .15s ease;
+}
+.card:hover{background:#EDE4D2;transform:translateX(2px)}
+.card:focus-visible{outline:2px solid var(--oxblood);outline-offset:2px}
+.card .bars{position:absolute;left:0;top:0;bottom:0;width:5px;display:flex;flex-direction:column}
+.card .bars span{flex:1}
+.card h3{font-family:var(--display);font-size:21px;font-weight:600;line-height:1.15;margin:0 0 5px}
+.card p{font-size:13.5px;color:var(--ink-soft);margin:0;line-height:1.45}
+.card.wide{grid-column:1/-1;background:transparent;border-style:dashed}
+
+/* ---------- refinement rows ---------- */
+.rowhead{
+  display:flex;align-items:baseline;gap:14px;padding:0 6px 7px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)
+}
+.rowhead .txt{flex:1}
+.rowhead .tag{text-align:right;padding-right:14px}
+.rowhead .diff{min-width:1.4em;text-align:right}
+.legend{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)
+}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
+.legend .lead{text-transform:none;letter-spacing:0;font-family:var(--body);font-size:13px}
+.rows{border-top:1px solid var(--rule)}
+.row{
+  width:100%;display:flex;align-items:baseline;gap:14px;text-align:left;cursor:pointer;
+  background:none;border:0;border-bottom:1px solid var(--rule);padding:14px 6px;
+  font-family:var(--body);font-size:16.5px;color:var(--ink);line-height:1.4;
+  transition:background .15s ease,padding-left .15s ease;
+}
+.row:hover{background:var(--paper-2);padding-left:12px}
+.row:focus-visible{outline:2px solid var(--oxblood);outline-offset:-2px}
+.row .txt{flex:1}
+.row .tag{
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  white-space:nowrap;padding:3px 7px;color:#fff;
+}
+.row .diff{font-family:var(--mono);font-size:13px;color:var(--ink-soft);min-width:1.4em;text-align:right}
+
+.aside{
+  border-left:2px solid var(--oxblood);padding:2px 0 2px 15px;margin:26px 0 0;
+  font-size:14.5px;color:var(--ink-soft)
+}
+.aside strong{color:var(--ink);font-weight:500}
+.aside .h{
+  display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--oxblood);margin-bottom:5px
+}
+
+/* ---------- result ---------- */
+.result{border:1px solid var(--ink);background:var(--paper-2)}
+.result-top{padding:20px 22px 18px;border-bottom:1px solid var(--rule)}
+.attr-line{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.attr-badge{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:#fff;padding:5px 11px
+}
+.pays{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.power{font-family:var(--display);font-size:clamp(30px,7vw,42px);font-weight:600;line-height:1.05;margin:0}
+.diffline{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);margin:9px 0 0;letter-spacing:.04em}
+.blurb{font-size:15.5px;margin:14px 0 0;line-height:1.55}
+.caveat{
+  font-size:14px;color:var(--ink-soft);margin:12px 0 0;padding-left:13px;border-left:2px solid var(--rule)
+}
+
+/* ---------- fuse (signature) ---------- */
+.fuse{padding:20px 22px 22px}
+.fuse-h{
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-soft);margin:0 0 14px
+}
+.verdict{font-family:var(--display);font-size:24px;line-height:1.25;margin:0 0 16px}
+.verdict .num{font-family:var(--mono);font-size:21px;font-weight:500}
+.track{position:relative;height:26px;background:var(--paper);border:1px solid var(--rule);overflow:hidden}
+.track .base{position:absolute;left:0;top:0;bottom:0;opacity:.34}
+.track .add{position:absolute;top:0;bottom:0;opacity:.92}
+.track .mark{position:absolute;top:0;bottom:0;width:1px;background:var(--ink);opacity:.4}
+.scale{position:relative;height:14px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-top:6px}
+.scale span{position:absolute;top:0;white-space:nowrap}
+.scale .s-mid{transform:translateX(-50%)}
+.scale .s-end{right:0}
+.fuse-note{font-size:13.5px;color:var(--ink-soft);margin:14px 0 0;line-height:1.5}
+.setlvl{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  background:none;border:0;padding:0;color:var(--oxblood);cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px
+}
+
+.greater{border-top:1px solid var(--rule);padding:18px 22px 20px}
+.greater .h{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 8px}
+.greater .n{font-family:var(--display);font-size:23px;font-weight:600;margin:0 0 5px}
+.greater p{font-size:14.5px;margin:0;color:var(--ink-soft)}
+
+.again{
+  margin-top:22px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  background:none;border:1px solid var(--rule);padding:11px 17px;cursor:pointer;color:var(--ink)
+}
+.again:hover{background:var(--paper-2);border-color:var(--ink)}
+
+/* ---------- footer ---------- */
+.foot{margin-top:44px;padding-top:20px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--ink-soft)}
+.foot p{margin:0 0 9px}
+.foot strong{color:var(--ink);font-weight:500}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Glitch · A Story of the Not</p>
+    <h1>Which <em>miracle?</em></h1>
+    <p class="deck">Say what you want to do. This finds the Attribute, the power, and what it will take out of you.</p>
+  </header>
+
+  <div class="sheet" id="sheet" data-open="false">
+    <button class="sheet-head" id="sheetToggle" aria-expanded="false" aria-controls="sheetBody">
+      <span id="sheetLabel">Your levels — not set</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="sheet-body" id="sheetBody">
+      <p class="sheet-note">Enter them once and every result will price itself against your sheet.</p>
+      <div class="levels" id="levels"></div>
+    </div>
+  </div>
+
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+
+  <!-- PANEL: intents -->
+  <section class="panel on" id="p-intent">
+    <h2 class="ask">What are you trying to do?</h2>
+    <div class="grid" id="intentGrid"></div>
+    <p class="legend">
+      <span class="lead">The stripe on each card shows which Costs that intent tends to burn:</span>
+      <span><i style="background:var(--eide)"></i>Eide</span>
+      <span><i style="background:var(--flore)"></i>Flore</span>
+      <span><i style="background:var(--lore)"></i>Lore</span>
+      <span><i style="background:var(--wyrd)"></i>Wyrd</span>
+    </p>
+  </section>
+
+  <!-- PANEL: refine -->
+  <section class="panel" id="p-refine" aria-live="polite">
+    <h2 class="ask" id="refineAsk"></h2>
+    <div id="refineWarn"></div>
+    <div class="rowhead" aria-hidden="true">
+      <span class="txt">More precisely…</span>
+      <span class="tag">Attribute</span>
+      <span class="diff">Diff</span>
+    </div>
+    <div class="rows" id="refineRows"></div>
+    <div id="refineAside"></div>
+  </section>
+
+  <!-- PANEL: result -->
+  <section class="panel" id="p-result" aria-live="polite">
+    <div class="result" id="resultCard"></div>
+    <button class="again" id="againBtn">Start over</button>
+  </section>
+
+  <footer class="foot">
+    <p><strong>Costs rise.</strong> You start at [Attribute × 10]. Around 40 it is severe, by 80 a crisis, and 108 is the ceiling — past it, that Cost cannot be spent at all. You clear it by taking Wounds, which is how the ending book fills.</p>
+    <p><strong>Your Bond Technique is Eide.</strong> Bonds grant a Technique, Techniques run on Eide, so the thing written on your Bond line pays Stilling.</p>
+    <p><strong>The listed power is the centre, not the fence.</strong> Every level names an energy you can manipulate — counter it, twist it, invent a use. Same difficulty. A genuinely new basic effect may cost more. Ask.</p>
+    <p><strong>You can combine miracles from the same Attribute</strong> into one action. Not across Attributes, and not miracles with Rites.</p>
+  </footer>
+
+</div>
+
+<script>
+const ATTR = {
+  eide:   {name:"Eide",    cost:"Stilling",  gloss:"your dream-of-self",      c:"var(--eide)"},
+  flore:  {name:"Flore",   cost:"Immersion", gloss:"your bonds in Creation",  c:"var(--flore)"},
+  lore:   {name:"Lore",    cost:"Fugue",     gloss:"your tie to Ninuan",      c:"var(--lore)"},
+  wyrd:   {name:"Wyrd",    cost:"Burn",      gloss:"your deep truth",         c:"var(--wyrd)"},
+  ability:{name:"Ability", cost:"Wear",      gloss:"hands, nerve, and time",  c:"var(--ability)"}
+};
+
+const MUNDANE = {
+  a:"ability", power:"A mundane action", diff:null,
+  blurb:"No miracle needed. Take the action, describe it well, and pay Wear if it strains you.",
+  caveat:"Wear can never fuel a miracle — but choosing to fail a task refunds it."
+};
+
+const INTENTS = [
+  {
+    id:"know", title:"Find something out", sub:"Knowledge, perception, seeing the unseen", bars:["lore","lore","flore"],
+    ask:"What kind of knowing?",
+    aside:{h:"Knowing vs. asking", t:"If the answer is written down somewhere in Creation, it is <strong>Ability</strong>. If it is not written down anywhere, it is <strong>Lore</strong>. If the thing that knows is something you love, it is <strong>Flore</strong>."},
+    rows:[
+      {t:"Look it up, ask around, work it out", ...MUNDANE},
+      {t:"What is this Arcanum, and what does it do?", a:"lore", power:"Investigation", diff:0,
+       blurb:"One or two sentences of basic information about an Arcanum. You have to research it — but “I search my memories” will do.",
+       g:{n:"Greater Investigation", d:4, t:"Expert or secret knowledge about an Arcanum. Or basic facts about literally anything. Or a bit of why and how. Or a clue."}},
+      {t:"The real answer about something that isn't an Arcanum", a:"lore", power:"Greater Investigation", diff:4,
+       blurb:"One or two sentences of basic information about anything at all, plus some of the why and how behind it — or a clue.",
+       caveat:"Miracles hit cover stories first. The official answer is always available and always incomplete."},
+      {t:"See in the dark, hear through silence, look at Ninuan", a:"lore", power:"Vision", diff:1,
+       blurb:"Direct perception. Darkness and muting stop mattering, obstructing your senses gets harder, and you can perceive Ninuan.",
+       g:{n:"Greater Vision", d:5, t:"Either automatic Vision for the rest of the scene without spending an action, or keen Vision — a sensory action with real competence and 3 Edge."}},
+      {t:"Perceive something subtle or intangible — from now on", a:"lore", power:"Percipience", diff:5,
+       blurb:"A planning miracle. You train yourself to perceive or interact with something elusive, then keep it as a bonus Technique while you stay in training.",
+       g:{n:"Greater Percipience", d:9, t:"Impressive versions of the same — or attune a small organisation, or part of a Region, to something hidden."}},
+      {t:"Sense that a Treasure needs me, from anywhere", a:"flore", power:"Connection", diff:0,
+       blurb:"You hear or feel your Treasures' hearts, and know when one of them needs you, no matter the distance.",
+       g:{n:"Greater Connection", d:4, t:"Context on that call — and the ability to read nearby Treasures that are otherwise hard to read. Bees. Rocks. Invisible aliens."}},
+      {t:"Look through a Treasure's eyes", a:"flore", power:"Administration", diff:2,
+       blurb:"Your spirit visits a Treasure while you stay awake. You can talk to it and borrow its senses — but not touch its mind deeply.",
+       g:{n:"Greater Administration", d:6, t:"Unlimited range, and potentially up to [Ability] Treasures at once."}},
+      {t:"Ride a Treasure deeply — its mind, my abilities in its hands", a:"flore", power:"The Projection Rite", diff:1,
+       blurb:"A trance. Your spirit visits a Treasure in the Region: you perceive through it, speak to it mentally, share your abilities and Costs, and can take damage to protect it.",
+       caveat:"Its memory comes back muddled wherever your abilities were used.",
+       g:{n:"Greater Projection Rite", d:5, t:"Unlimited range, and up to [Ability] Treasures at once."}}
+    ]
+  },
+  {
+    id:"compel", title:"Get someone to feel or do something", sub:"Influence, compulsion, curses", bars:["eide","wyrd","lore"],
+    ask:"Why do they yield?",
+    aside:{h:"Eide or Wyrd?", t:"Both compel. The difference is the mechanism you are claiming. <strong>Eide</strong> — they yield because you are magnificent; it is about your standing. <strong>Wyrd</strong> — they yield because you have wounded them with your dying; it is a curse, and it is yours."},
+    rows:[
+      {t:"Argue, charm, threaten, lie", ...MUNDANE},
+      {t:"Going along with me becomes the easy thing", a:"eide", power:"Intensity", diff:1,
+       blurb:"It becomes comfortable to agree with you. Standing up to you is an Ability 3 task — or Ability 5 if you actively invoke a title or an authority.",
+       g:{n:"Greater Intensity", d:5, t:"A time-consuming Rite. You seem so valuable, so necessary, that it lands as a Geas lasting until the end of the next story. If they are utterly defeated while it holds, you gain 20 points of a Cost."}},
+      {t:"Curse them with what is killing me", a:"wyrd", power:"Contagion", diff:3,
+       blurb:"You inflict a curse or blight drawn from your own infection. The effect is phantasmagorical, and fades within two dawns or twilights once you stop sustaining it.",
+       g:{n:"Greater Contagion", d:7, t:"Stronger curses, in the form of Geasa lasting 0–2 stories. A person is the normal target; anything larger takes considerably more time."}},
+      {t:"Transform them by hanging a Bond on them", a:"lore", power:"Infusion", diff:6,
+       blurb:"You use an Arcanum to grant someone a temporary Bond, and they transform as needed to manifest its truth.",
+       caveat:"Needs an Arcanum. Inventing a new Bond is time-consuming; re-using an old idea is not.",
+       g:{n:"Greater Infusion", d:10, t:"Extraordinary transformations, with extraordinary Techniques, lasting until you cancel them or something narrative breaks the effect."}},
+      {t:"Wake a hidden power in someone I treasure", a:"flore", power:"Glorification", diff:4,
+       blurb:"You awaken a unique special power in a Treasure, manifesting as a Technique. Lasts while sustained — or longer, with time-consuming preparation.",
+       g:{n:"Greater Glorification", d:8, t:"An extraordinary power. Treasures that already have ordinary ones wake an extraordinary version, which can hurt them."}}
+    ]
+  },
+  {
+    id:"move", title:"Get somewhere, or get past something", sub:"Distance, barriers, arrival", bars:["lore","wyrd","flore"],
+    ask:"What is in the way?",
+    rows:[
+      {t:"Walk, climb, drive, sneak", ...MUNDANE},
+      {t:"Get around a real obstacle — a wall, a river, a ward", a:"lore", power:"Navigation", diff:4,
+       blurb:"A time-consuming miracle that works around a navigational obstacle. Crosses up to about a quarter mile of physical distance, or an analogous spiritual one.",
+       g:{n:"Greater Navigation", d:8, t:"Very time-consuming and extraordinary. Opens a path between any two points, lasting at least while sustained. Paid as epic, it reaches impossible places — a year ago, your imaginary friend's house."}},
+      {t:"Reach my sanctuary", a:"wyrd", power:"Elysium", diff:1,
+       blurb:"You travel to your sanctuary through an appropriate symbolic entrance, anywhere. Walk around any bookshelf, and be there.",
+       caveat:"You still need something that can be construed as an entrance.",
+       g:{n:"Greater Elysium Rite", d:5, t:"If it is possible at all to find or construe an entrance, you find one — taking extra damage helps if it is not. As a Rite, it also pierces any Wards in the way."}},
+      {t:"Move and survive where my Sphere touches the world", a:"lore", power:"Spherecraft", diff:2,
+       blurb:"A cinematic action to be mobile in — and survive — regions tied to your Sphere. Functions as a mundane action at this level, with 3 Edge.",
+       g:{n:"Greater Spherecraft", d:6, t:"Bigger stunts, or the same work applied to other people's Arcana."}},
+      {t:"Don't go — make it come to me", a:"flore", power:"Trust", diff:6,
+       blurb:"A Treasure reaches you quickly and in time from anywhere in the Region. It does not use an action, and the Treasure arrives with the benefits of Ignition.",
+       g:{n:"Greater Trust", d:10, t:"From anywhere at all, with Greater Ignition, optionally merging Techniques with you, and effective Ability up to 10."}}
+    ]
+  },
+  {
+    id:"proxy", title:"Have something else act, and act well", sub:"Allies, servants, empowerment", bars:["flore","flore","eide"],
+    ask:"What should it be able to do?",
+    warn:"Almost all of this needs a <strong>Treasure</strong>. No Treasure in the picture, no Flore — that is the hardest gate in the system. The last two rows are the workarounds.",
+    rows:[
+      {t:"Make it competent — steady hands, +1 Ability, 2 Edge", a:"flore", power:"Guidance", diff:3,
+       blurb:"A Treasure's action, or an action using a Treasure, gains comfort in the task, standard professional competence (or yours, if better), +1 Ability if below yours, and 2 Edge. Invest time and it lingers.",
+       g:{n:"Greater Guidance", d:7, t:"Effective Ability 7, and limited mobility for inanimate targets. Or, with a great deal of time, train someone in a narrow skill — even one you don't have, even a non-Treasure — stored in a quest slot."}},
+      {t:"Give it a power it never had", a:"flore", power:"Glorification", diff:4,
+       blurb:"Awaken a unique special power in a Treasure, manifesting as a Technique. At a 20 Cost surcharge, the time-consuming version can claim a new florem even with a full roster.",
+       g:{n:"Greater Glorification", d:8, t:"An extraordinary power — and with very time-consuming labour, a Technique lasting indefinitely, stored in one of your quest slots."}},
+      {t:"Let it act against miracles", a:"flore", power:"Ignition", diff:5,
+       blurb:"3 Edge, and the action can contend with miracles where it is plausible — a Treasure-mirror reflecting one, a Treasure-bird dodging one.",
+       g:{n:"Greater Ignition", d:9, t:"The action becomes unopposable by mundane actions, and effective Ability can rise to 9."}},
+      {t:"Send it to do a thing across the whole story", a:"flore", power:"Divine Plan", diff:8,
+       blurb:"A planning miracle that destines a Treasure to do something. It may take a long time if the Treasure is unsuited, so the plan sits in a quest slot. It gets Ignition on relevant actions throughout.",
+       g:{n:"Greater Divine Plan", d:12, t:"Very time-consuming. The Treasure becomes a cauldron of destiny, and you pull a wish out of its power."}},
+      {t:"I have no Treasure — build me a servant", a:"eide", power:"The Casting Rite", diff:7,
+       blurb:"A time-consuming Rite forging a minion out of your Eide. It can manipulate emotions somewhat, has a decent Ability or a few minor powers, and spends from a 2-point Cost pool it can vampirically push onto others.",
+       caveat:"Keeping control of it occupies a quest slot.",
+       g:{n:"Greater Casting Rite", d:11, t:"Very time-consuming. Warps the whole world around you into a twisted space that fits your Eide."}},
+      {t:"…or forge one out of the wound instead", a:"wyrd", power:"The Casting Rite", diff:7,
+       blurb:"The same Rite, drawn from your heart rather than your self-image. A minion with a 2-point Cost pool it can push onto others.",
+       caveat:"Keeping control of it occupies a quest slot.",
+       g:{n:"Greater Casting Rite", d:11, t:"Warps the world around you into a twisted space that fits your heart."}}
+    ]
+  },
+  {
+    id:"unmake", title:"Break, remove, or stop something", sub:"Destruction, banishment, ruin", bars:["wyrd","wyrd","eide"],
+    ask:"How gone does it need to be?",
+    aside:{h:"Only Wyrd unmakes", t:"Misdirection hides. Spherecraft banishes. Destruction <strong>ends</strong>. If the honest answer to “and then what?” is <em>nothing, it is simply gone</em> — that is Wyrd, and nothing else will do."},
+    rows:[
+      {t:"Gone. Un-made. Not coming back.", a:"wyrd", power:"Destruction", diff:4,
+       blurb:"Your personalised power of un-creation. Normally it has a fairly narrow set of applicable targets — under the Wailing Rite, it can target anything.",
+       caveat:"This is a Bleak power: hard work, love, and daring can sometimes defeat it. Its effects on λ-beings are phantasmagorical.",
+       g:{n:"Greater Destruction", d:8, t:"A related but substantively stronger power of un-creation. Everything else is the same."}},
+      {t:"Gone from view — hidden, from whoever I choose", a:"eide", power:"Misdirection", diff:8,
+       blurb:"A power to hide something. Discriminating — you choose who it is hidden from. Bleak — a heroic heart can occasionally beat it, but hardly as an everyday thing. And capable of some truly incredible tricks.",
+       g:{n:"Greater Misdirection", d:12, t:"Declare something and the world will now perceive it. While sustained, any contrary evidence is made phantasmagorical."}},
+      {t:"Blighted, cursed, ruined — but still there", a:"wyrd", power:"Contagion", diff:3,
+       blurb:"A curse or blight drawn from your infection. Phantasmagorical, and lasting at most two dawns or twilights once you stop sustaining it.",
+       g:{n:"Greater Contagion", d:7, t:"Stronger curses as Geasa, lasting 0–2 stories. Anything bigger than a person takes a lot more time."}},
+      {t:"It's an Arcanum — throw it back out of Creation", a:"lore", power:"Spherecraft", diff:2,
+       blurb:"A cinematic action to defend against your Arcana, bring them into Creation, or banish them from it. A mundane action at this level, with 3 Edge.",
+       g:{n:"Greater Spherecraft", d:6, t:"The same for other people's Arcana — defending, inviting, or banishing. If the Arcanum is powerful enough, some of those stunts can be miraculous."}},
+      {t:"I just took 5+ damage and I want catastrophe", a:"wyrd", power:"The Shattering Rite", diff:5,
+       blurb:"Usable only when you take 5 or more points of damage. It unleashes a specific phantasmagorical disaster, and only uses an action if you keep meaningful control over it.",
+       g:{n:"Greater Shattering", d:9, t:"For when you cannot take it any more. You rampage as a giant symbolic monster. The monster is not always the same one."}},
+      {t:"Break a condition's grip — gravity, a spell, a compulsion", a:"wyrd", power:"Greater Unfettering", diff:10,
+       blurb:"A time-consuming power that breaks the hold of metaphysical, spiritual, psychological, physical, or widespread local conditions on a target.",
+       caveat:"If the condition is ongoing, the effect lasts while sustained plus a few chapters. Paid as epic, it can be effectively permanent."}
+    ]
+  },
+  {
+    id:"resist", title:"Shrug off something aimed at me", sub:"Defence, denial, escape", bars:["wyrd","eide","flore"],
+    ask:"Why doesn't it stick?",
+    aside:{h:"Eide or Wyrd?", t:"<strong>Eide</strong> — it did not stick because this is not where your story ends. You are buying a scene. <strong>Wyrd</strong> — it did not stick because there was nothing there for it to stick to. You are denying the premise."},
+    rows:[
+      {t:"Just eat it", a:"ability", power:"Take damage", diff:null,
+       blurb:"Always available, to anyone, against anything. You take Cost instead of the effect. This is why Strategists are functionally unkillable — and why the ending book fills.",
+       caveat:"Taking 3 or more in a single incident earns 1 XP."},
+      {t:"Your miracle assumes I'm real. I'm not.", a:"wyrd", power:"Unfettering", diff:6,
+       blurb:"You dodge miracles, magic, and metaphysical effects that assume their targets are real, by pointing out that you are a λ-being and not part of the world at all. Under the Wailing Rite it needs no action and lasts the scene.",
+       caveat:"Which miracles make that assumption is situational — but assuming targets are real is the default.",
+       g:{n:"Greater Unfettering Rite", d:10, t:"Time-consuming. Breaks the grip of conditions on a target entirely, including physical and λ-aware ones. Potentially permanent."}},
+      {t:"I appear to lose, then walk it off after the scene", a:"eide", power:"The Cliffhanger Rite", diff:4,
+       blurb:"A feint involving feigned defeat. Something supernatural and unwanted happens to you, but you do not take damage — you use this instead, and recover automatically once the scene ends and nothing is sustaining the effect.",
+       g:{n:"Greater Cliffhanger Rite", d:8, t:"The scene does not have to end — you shake it off as soon as it is no longer sustained. If you and the GM can agree how, it then turns the effect around."}},
+      {t:"Something tried to erase my infection", a:"eide", power:"The Agony Rite", diff:0,
+       blurb:"Invokes itself as an involuntary reflex, with no action needed. It protects you against attacks that would erase your infection, restores it if lost, or imposes a new understanding of it on the world.",
+       g:{n:"Greater Agony", d:4, t:"A miracle that invokes a whole new manifestation of that infection."}},
+      {t:"Something I love gets there in time", a:"flore", power:"Trust", diff:6,
+       blurb:"A Treasure reaches you quickly and in time from anywhere in the Region, without using an action, arriving with the benefits of Ignition.",
+       g:{n:"Greater Trust", d:10, t:"From anywhere at all, with Greater Ignition and merged Techniques."}},
+      {t:"Retreat, and come back mended", a:"wyrd", power:"Elysium → The Revenant Rite", diff:2,
+       blurb:"Elysium (1) takes you to your sanctuary. The Revenant Rite (2), performed by spending a spotlight there or recuperating at length in the void, lowers your Infection by a point and recovers 3 points of Costs.",
+       g:{n:"Greater Revenant Rite", d:6, t:"Lowers effective Infection by a point for a scene — anywhere, anywhen. Or mitigates a comparable problem in you or someone else. In the sanctuary, it can erase such a problem for good."}}
+    ]
+  },
+  {
+    id:"flair", title:"Do something impossible, with flair", sub:"Stunts, talent, raw power", bars:["eide","lore","eide"],
+    ask:"Where does the flourish come from?",
+    aside:{h:"Eide or Lore?", t:"Is the flourish <strong>you</strong>, or is it <strong>the thing you bound</strong>? Your Bond Technique is always Eide."},
+    rows:[
+      {t:"A cinematic move that fits my Technique", a:"eide", power:"Stunt", diff:2,
+       blurb:"A cinematic or low-fantasy action inside your Technique. Functionally a mundane action with the same action level as the miracle, and 3 Edge by default.",
+       g:{n:"Greater Stunt", d:6, t:"The same rough cinematic register — but the bigger moments from it."}},
+      {t:"Something using my Arcana, or in my Sphere's element", a:"lore", power:"Spherecraft", diff:2,
+       blurb:"A cinematic action to make proper use of your Arcana, defend against them, bring them into Creation, banish them, or survive and move where your Sphere touches. Mundane action, 3 Edge.",
+       g:{n:"Greater Spherecraft", d:6, t:"Other people's Arcana, or an improved greater-stunt version. Powerful enough Arcana make some of those stunts miraculous."}},
+      {t:"I'm being tested on my Technique and I need to pass", a:"eide", power:"Talent", diff:5,
+       blurb:"No action needed. Whenever something tests your qualifications in your Technique, you pass — by whatever standard is relevant, which usually means brilliance. And you do better on each test than the last.",
+       caveat:"Mundane sabotage can spoil this by making it not really a test — but at a minimum difficulty of 7.",
+       g:{n:"Greater Talent", d:9, t:"Too much. Base Talent already passes any test; kicking it up cracks the world. Your self-presentation breaks, you become a giant symbolic monster, and you rampage."}},
+      {t:"Pull raw Sphere-energy into the world", a:"lore", power:"Inchoation", diff:7,
+       blurb:"Creates energies from your Sphere. Instant phantasmagorical phenomena; simple Arcana and paraphernalia if time-consuming; meaningful influences and artifacts if very time-consuming.",
+       g:{n:"Greater Inchoation", d:11, t:"A wish that creates and shapes powerful Sphere-energies. Hard to get the most from unless you are in tune with your Sphere — high Fugue, letting the wish do what it wants."}},
+      {t:"Stretch one Arcanum into a use it was never for", a:"lore", power:"Invocation", diff:8,
+       blurb:"A time-consuming action that stretches an Arcanum's possible uses. Both the stretching and the final use brush the top of the cinematic range. The result is stored in a quest slot for later or repeated use.",
+       g:{n:"Greater Invocation", d:12, t:"A planning miracle to chain, bind, banish, or attack someone from afar, invoking weird ritual powers that exist only under its aegis."}}
+    ]
+  },
+  {
+    id:"craft", title:"Make, fix, or transform an object", sub:"Artifacts, repair, awakening", bars:["flore","lore","flore"],
+    ask:"Where does the thing come from?",
+    rows:[
+      {t:"Build it, repair it, tune it with real craft", ...MUNDANE},
+      {t:"Forge or retrofit an artifact", a:"flore", power:"The Design Rite", diff:7,
+       blurb:"A cinematic action to create an artifact — or repair, retrofit, customise, tune, or integrate minor improvements into an existing one — using any magic or craft you are reasonably acquainted with. Mundane action, 3 Edge.",
+       caveat:"Spending 1–4 extra Cost can improve or speed this somewhat.",
+       g:{n:"Greater Design Rite", d:11, t:"Very time-consuming. Creates, customises, or repairs a fortress-scale artifact, typically to subtly shape a Region."}},
+      {t:"Birth it out of my Sphere instead", a:"lore", power:"Inchoation", diff:7,
+       blurb:"Creates energies from your Sphere: instant phenomena, time-consuming simple Arcana and paraphernalia, or very time-consuming meaningful artifacts.",
+       g:{n:"Greater Inchoation", d:11, t:"A wish that creates and shapes the powerful energies of your Sphere."}},
+      {t:"Wake up what is already sleeping in it", a:"flore", power:"Glorification", diff:4,
+       blurb:"Awakens a unique special power in a Treasure, manifesting as a Technique. Lasts while sustained, or longer with time-consuming preparation.",
+       g:{n:"Greater Glorification", d:8, t:"An extraordinary power — and, with very time-consuming labour, one that lasts indefinitely in a quest slot."}},
+      {t:"Give an inanimate thing the ability to move", a:"flore", power:"The Projection Rite", diff:1,
+       blurb:"Forming a deep connection with an inanimate Treasure can grant it limited mobility, alongside sharing your abilities and Costs with it.",
+       caveat:"Greater Guidance (7) does this too, as part of a much larger package."}
+    ]
+  },
+  {
+    id:"self", title:"Change myself", sub:"Appearance, identity, state", bars:["eide","wyrd","wyrd"],
+    ask:"How deep does the change go?",
+    aside:{h:"Eide or Wyrd?", t:"<strong>Eide</strong> changes the presentation. <strong>Wyrd</strong> changes the person. Costumery is a costume; Masking is a life."},
+    rows:[
+      {t:"Into my real costume, weapons and all", a:"eide", power:"Costumery", diff:3,
+       blurb:"Used while unobserved. You instantly assume your traditional costume along with its weapons, goods, and tools — or return to what you were wearing before.",
+       g:{n:"Greater Costumery", d:7, t:"Time-consuming and phantasmagorical. Calls up the special effects associated with your costume and identity — though it cannot summon or banish physical things under intent observation."}},
+      {t:"Change how the world sees me", a:"eide", power:"Misdirection", diff:8,
+       blurb:"Hide something — including yourself — from whoever you choose. Bleak, discriminating, and capable of some genuinely incredible tricks.",
+       g:{n:"Greater Misdirection", d:12, t:"Declare something the world will now perceive. Contrary evidence goes phantasmagorical while it is sustained."}},
+      {t:"Change who I actually am", a:"wyrd", power:"The Masking Rite", diff:8,
+       blurb:"A time-consuming Rite altering your personality or identity. Often a new worldly identity that seems to check out under mundane investigation — sometimes just messing around in your own head. Recorded as a Geas in a quest slot.",
+       g:{n:"Greater Masking", d:12, t:"A wish, explicitly allowed to be extraordinary. You can impose a destiny on the identity you make, and the wish will move events inexorably toward it — and you cannot undo the change until that destiny is realised."}},
+      {t:"Stop holding back entirely", a:"wyrd", power:"The Wailing Rite", diff:0,
+       blurb:"Infection state. Every point of Cost you spend counts as two. Oaths sworn in Creation become invalid. Destruction and Unfettering get stronger. But you no longer recover a point in each Cost at the start of every chapter.",
+       caveat:"It can only be switched off during certain major story events — and it sometimes switches itself on unless you take damage to fight it.",
+       g:{n:"Greater Wailing Rite", d:4, t:"A desperate flight from the world. +1 Infection, 15 points of the omni-applicable Desperation Cost, and +2 Ability to destruction and to fleeing — but Ability 0 for everything else. Lasts until you reach the void. Auto-fires at Infection 6."}},
+      {t:"Recover — lower Infection, claw back Cost", a:"wyrd", power:"The Revenant Rite", diff:2,
+       blurb:"Performed by spending a spotlight in your sanctuary, or recuperating at length in the void. Lowers Infection by a point and recovers 3 points of Costs, possibly including Wear.",
+       g:{n:"Greater Revenant Rite", d:6, t:"Lowers effective Infection by a point for a scene, anywhere, anywhen — or mitigates a comparable problem in you or someone else. In the sanctuary, it can erase such a problem permanently."}},
+      {t:"Break, magnificently, under a test", a:"eide", power:"Greater Talent", diff:9,
+       blurb:"Facing a test so hard your Eide shatters, or showing more talent than a mortal frame can hold, your self-presentation breaks. You turn into a giant symbolic monster and rampage.",
+       caveat:"Phantasmagorical at the GM's option — sometimes the rampage happens, sometimes it is retroactively allegorical."},
+      {t:"…or break because you couldn't take any more", a:"wyrd", power:"Greater Shattering", diff:9,
+       blurb:"The same shape, from the other direction. You rampage in the form of a giant symbolic monster. The monster, and the details of the rampage, are not always the same."}
+    ]
+  },
+  {
+    id:"plan", title:"Set something up to pay off later", sub:"Planning miracles and quest slots", bars:["eide","lore","flore"],
+    ask:"What does the plan run through?",
+    warn:"Planning miracles take a scene or more, and several of these sit in a <strong>quest slot</strong> until they fire.",
+    rows:[
+      {t:"React to someone else's move with a scheme in my idiom", a:"eide", power:"Strategy", diff:6,
+       blurb:"A planning miracle making reactive plans that fit your Technique. Reactive means you must be responding to someone shaking up the status quo, or to an opportunity that just appeared.",
+       caveat:"It cannot simply change long-standing situations in an arbitrary way. That's the Greater version.",
+       g:{n:"Greater Strategy", d:10, t:"You form one proactive objective in response to your most recent Serious or Transformative Wound, then plan to achieve it. It may take several chapters — but the victory lasts longer than most."}},
+      {t:"Catch and bind an Arcanum", a:"lore", power:"Hunt", diff:3,
+       blurb:"A planning miracle to catch and bind an Arcanum — specifically one closer to a mortal's power than a Strategist's, and either fairly ordinary or already seen in play.",
+       g:{n:"Greater Hunt", d:7, t:"Catches rare and powerful Arcana; powerful ones can take a long time. With GM permission it may also catch weak, common Arcana quickly or instantly."}},
+      {t:"Train myself into a new sense", a:"lore", power:"Percipience", diff:5,
+       blurb:"You train yourself to perceive or interact with something subtle, elusive, or intangible. Afterwards you keep it as a bonus Technique while you stay in training, and maybe a few chapters beyond.",
+       g:{n:"Greater Percipience", d:9, t:"Impressive versions of those talents — or attune a small organisation, or part of a Region, to something hidden. Lasts a few chapters unless made epic."}},
+      {t:"Aim a Treasure at a destiny", a:"flore", power:"Divine Plan", diff:8,
+       blurb:"A planning miracle that destines a Treasure to do something. Stored in a quest slot, since it may take a long time if the Treasure is unsuitable. It gains Ignition on relevant actions throughout.",
+       g:{n:"Greater Divine Plan", d:12, t:"Very time-consuming. Turns a Treasure into a cauldron of destiny and pulls a wish from their power."}},
+      {t:"Teach someone a skill for good", a:"flore", power:"Greater Guidance", diff:7,
+       blurb:"With a great deal of time, train someone in a relatively narrow mundane or magical skill — even one you do not have, even a target who is not a Treasure. Every action they take with it gains the benefits of Guidance.",
+       caveat:"Stored in one of your quest slots."},
+      {t:"Strike, bind, or banish someone from far away", a:"lore", power:"Greater Invocation", diff:12,
+       blurb:"A planning miracle to chain, bind, banish, or attack someone at a distance. The plan can invoke weird ritual powers that exist only under the aegis of this power's plans.",
+       caveat:"Arcana viable for your deck are faster to hunt under this; weak ones may be hunted instantly, without stating a plan."}
+    ]
+  }
+];
+
+/* ---------------- state ---------------- */
+const levels = {eide:null, flore:null, lore:null, wyrd:null, ability:null};
+let curIntent = null;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&(?!\w+;)/g,"&amp;").replace(/</g,"&lt;");
+
+/* ---------------- sheet ---------------- */
+const LVL_ORDER = ["eide","flore","lore","wyrd","ability"];
+function buildSheet(){
+  $("#levels").innerHTML = LVL_ORDER.map(k=>`
+    <div class="lvl" data-a="${k}">
+      <label for="lvl-${k}">${ATTR[k].name}</label>
+      <input id="lvl-${k}" type="number" min="0" max="12" inputmode="numeric" placeholder="–" data-k="${k}">
+    </div>`).join("");
+  $("#levels").addEventListener("input", e=>{
+    const k = e.target.dataset.k; if(!k) return;
+    const v = e.target.value === "" ? null : Math.max(0, Math.min(12, parseInt(e.target.value,10) || 0));
+    levels[k] = v;
+    syncSheetLabel();
+    if($("#p-result").classList.contains("on")) renderResult(lastPick);
+  });
+  $("#sheetToggle").addEventListener("click", ()=>{
+    const s = $("#sheet"), open = s.dataset.open === "true";
+    s.dataset.open = String(!open);
+    $("#sheetToggle").setAttribute("aria-expanded", String(!open));
+  });
+}
+function syncSheetLabel(){
+  const set = LVL_ORDER.filter(k=>levels[k]!==null);
+  $("#sheetLabel").textContent = set.length
+    ? "Your levels — " + set.map(k=>`${ATTR[k].name} ${levels[k]}`).join(" · ")
+    : "Your levels — not set";
+}
+function openSheet(){
+  $("#sheet").dataset.open = "true";
+  $("#sheetToggle").setAttribute("aria-expanded","true");
+  $("#sheet").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+/* ---------------- panels ---------------- */
+function show(id){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("on", p.id===id));
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function crumbs(parts){
+  $("#crumbs").innerHTML = parts.map((p,i)=>{
+    const sep = i ? '<span class="crumb-sep" aria-hidden="true">/</span>' : "";
+    return p.go
+      ? `${sep}<button class="crumb" data-go="${p.go}">${esc(p.t)}</button>`
+      : `${sep}<span class="crumb-now">${esc(p.t)}</span>`;
+  }).join("");
+}
+$("#crumbs").addEventListener("click", e=>{
+  const g = e.target.dataset.go; if(!g) return;
+  if(g==="intent") goIntent(); else goRefine(g);
+});
+
+/* ---------------- intent grid ---------------- */
+function goIntent(){
+  curIntent = null;
+  crumbs([{t:"Start"}]);
+  $("#intentGrid").innerHTML = INTENTS.map(it=>`
+    <button class="card" data-id="${it.id}">
+      <span class="bars" aria-hidden="true">${it.bars.map(b=>`<span style="background:var(--${b})"></span>`).join("")}</span>
+      <h3>${esc(it.title)}</h3>
+      <p>${esc(it.sub)}</p>
+    </button>`).join("") + `
+    <button class="card wide" data-id="__mundane">
+      <h3>Actually, anyone could do this</h3>
+      <p>Skill, nerve, and time would get there. Take the mundane action instead — it is quiet, cheap, and not weakness.</p>
+    </button>`;
+  show("p-intent");
+}
+$("#intentGrid").addEventListener("click", e=>{
+  const b = e.target.closest("[data-id]"); if(!b) return;
+  if(b.dataset.id === "__mundane"){
+    crumbs([{t:"Start", go:"intent"},{t:"Mundane"}]);
+    renderResult({t:"Anyone could do this", ...MUNDANE});
+  } else goRefine(b.dataset.id);
+});
+
+/* ---------------- refine ---------------- */
+function goRefine(id){
+  const it = INTENTS.find(x=>x.id===id); if(!it) return;
+  curIntent = it;
+  crumbs([{t:"Start", go:"intent"},{t:it.title}]);
+  $("#refineAsk").textContent = it.ask;
+  $("#refineWarn").innerHTML = it.warn
+    ? `<div class="aside"><span class="h">Before you pick</span>${it.warn}</div><div style="height:22px"></div>` : "";
+  $("#refineRows").innerHTML = it.rows.map((r,i)=>`
+    <button class="row" data-i="${i}">
+      <span class="txt">${esc(r.t)}</span>
+      <span class="tag" style="background:${ATTR[r.a].c}">${ATTR[r.a].name}</span>
+      <span class="diff">${r.diff===null?"—":r.diff}</span>
+    </button>`).join("");
+  $("#refineAside").innerHTML = it.aside
+    ? `<div class="aside"><span class="h">${esc(it.aside.h)}</span>${it.aside.t}</div>` : "";
+  show("p-refine");
+}
+$("#refineRows").addEventListener("click", e=>{
+  const b = e.target.closest("[data-i]"); if(!b || !curIntent) return;
+  const r = curIntent.rows[+b.dataset.i];
+  crumbs([{t:"Start", go:"intent"},{t:curIntent.title, go:curIntent.id},{t:r.power}]);
+  renderResult(r);
+});
+
+/* ---------------- result ---------------- */
+let lastPick = null;
+function renderResult(r){
+  lastPick = r;
+  const A = ATTR[r.a];
+  const isMundane = r.diff === null;
+
+  let fuse;
+  if(isMundane){
+    fuse = `<p class="fuse-h">What it takes</p>
+      <p class="verdict">No miracle, no miraculous Cost.</p>
+      <p class="fuse-note">Strain pays into Wear, which starts at 40 and never fuels a miracle. Choosing to fail a task refunds it.</p>`;
+  } else {
+    const lv = levels[r.a];
+    if(lv === null){
+      fuse = `<p class="fuse-h">What it takes</p>
+        <p class="verdict">Free if your ${A.name} is ${r.diff} or better. Otherwise it costs the difference in ${A.cost}.</p>
+        <p class="fuse-note"><button class="setlvl" id="jumpSheet">Enter your levels</button> to see exactly what this does to you.</p>`;
+    } else if(lv >= r.diff){
+      fuse = `<p class="fuse-h">What it takes</p>
+        <p class="verdict">Free. Your ${A.name} is <span class="num">${lv}</span>; this asks for <span class="num">${r.diff}</span>.</p>
+        ${track(lv*10, 0, A)}
+        <p class="fuse-note">You sit at <strong>${lv*10} ${A.cost}</strong> and this does not move it. Note that a high Attribute is both your cheapest power and your shortest fuse.</p>`;
+    } else {
+      const gain = r.diff - lv, base = lv*10, tot = base + gain;
+      const band = tot >= 108 ? "You are at the ceiling. This Cost can no longer be spent at all."
+                : tot >= 80  ? "That is a crisis. The GM may force a harmful crisis on you at this range."
+                : tot >= 40  ? "That is severe territory."
+                : "Comfortably survivable.";
+      fuse = `<p class="fuse-h">What it takes</p>
+        <p class="verdict">Take <span class="num">${gain}</span> ${A.cost}. You would sit at <span class="num">${tot}</span>.</p>
+        ${track(base, gain, A)}
+        <p class="fuse-note">${esc(band)} You only pay if the effect actually lands — if it is blocked outright, it costs nothing.${gain>=3?" <strong>Spending 3 or more in one action earns 1 XP</strong> — say what it did to you.":""}
+        ${" A Ward adds its level to the level you must name, so add that on top."}</p>`;
+    }
+  }
+
+  const g = r.g ? `<div class="greater">
+      <p class="h">If that isn't enough</p>
+      <p class="n">${esc(r.g.n)} <span style="font-family:var(--mono);font-size:14px;color:var(--ink-soft)">· difficulty ${r.g.d}</span></p>
+      <p>${esc(r.g.t)}</p>
+    </div>` : "";
+
+  $("#resultCard").innerHTML = `
+    <div class="result-top">
+      <div class="attr-line">
+        <span class="attr-badge" style="background:${A.c}">${A.name}</span>
+        <span class="pays">${isMundane ? "pays Wear" : "pays " + A.cost} · ${A.gloss}</span>
+      </div>
+      <h2 class="power">${esc(r.power)}</h2>
+      ${isMundane ? "" : `<p class="diffline">Difficulty ${r.diff}</p>`}
+      <p class="blurb">${esc(r.blurb)}</p>
+      ${r.caveat ? `<p class="caveat">${esc(r.caveat)}</p>` : ""}
+    </div>
+    <div class="fuse">${fuse}</div>
+    ${g}`;
+
+  const j = document.getElementById("jumpSheet");
+  if(j) j.addEventListener("click", openSheet);
+  show("p-result");
+}
+
+function track(base, add, A){
+  const pct = n => Math.min(100, (n/108)*100);
+  return `<div class="track" role="img" aria-label="${base+add} of 108 ${A.cost}">
+      <span class="base" style="width:${pct(base)}%;background:${A.c}"></span>
+      <span class="add"  style="left:${pct(base)}%;width:${pct(add)}%;background:${A.c}"></span>
+      <span class="mark" style="left:${pct(40)}%"></span>
+      <span class="mark" style="left:${pct(80)}%"></span>
+    </div>
+    <div class="scale">
+      <span style="left:0">0</span>
+      <span class="s-mid" style="left:${pct(40)}%">40 · severe</span>
+      <span class="s-mid" style="left:${pct(80)}%">80 · crisis</span>
+      <span class="s-end">108</span>
+    </div>`;
+}
+
+$("#againBtn").addEventListener("click", goIntent);
+
+buildSheet();
+syncSheetLabel();
+goIntent();
+</script>
+</body>
+</html>
